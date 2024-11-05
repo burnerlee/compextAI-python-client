@@ -6,3 +6,4 @@ src/CompextAI.egg-info/SOURCES.txt
 src/CompextAI.egg-info/dependency_links.txt
 src/CompextAI.egg-info/top_level.txt
 src/compextAI/__init__.py
+src/compextAI/main.py

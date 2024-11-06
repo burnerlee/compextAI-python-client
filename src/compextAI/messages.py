@@ -1,4 +1,4 @@
-from src.compextAI.api.api import APIClient
+from compextAI.api.api import APIClient
 
 class Message:
     message_id: str

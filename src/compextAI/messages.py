@@ -48,7 +48,7 @@ def create(client:APIClient, thread_id:str, content:str, role:str, metadata:dict
     status_code: int = response["status"]
     data: dict = response["data"]
     
-    if status_code != 201:
+    if status_code != 200:
         raise Exception(f"Failed to create message, status code: {status_code}, response: {data}")
     
     return get_message_object_from_dict(data)

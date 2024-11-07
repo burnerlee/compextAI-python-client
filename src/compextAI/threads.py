@@ -21,16 +21,11 @@ class Thread:
     def __str__(self):
         return f"Thread(thread_id={self.thread_id}, title={self.title}, metadata={self.metadata})"
     
-    def execute(self, client:APIClient, model: str, temperature: float=0.5, timeout: int=600, max_completion_tokens: int=0, top_p: float=1, max_output_tokens: int=0, response_format:any=None, append_assistant_response:bool=True) -> ThreadExecutionResponse:
+    def execute(self, client:APIClient, thread_exec_param_id: str, system_prompt:str="", append_assistant_response:bool=True) -> ThreadExecutionResponse:
         response = client.post(f"/thread/{self.thread_id}/execute", data={
-            "execution_model": model,
-            "temperature": temperature,
-            "timeout": timeout,
-            "max_completion_tokens": max_completion_tokens,
-            "top_p": top_p,
-            "max_output_tokens": max_output_tokens,
-            "response_format": response_format,
-            "append_assistant_response": append_assistant_response
+            "thread_execution_param_id": thread_exec_param_id,
+            "append_assistant_response": append_assistant_response,
+            "thread_execution_system_prompt": system_prompt
         })
 
         status_code: int = response["status"]
@@ -75,7 +70,7 @@ def create(client:APIClient, title:str=None, metadata:dict={}) -> Thread:
     status_code: int = response["status"]
     data: dict = response["data"]
     
-    if status_code != 201:
+    if status_code != 200:
         raise Exception(f"Failed to create thread, status code: {status_code}, response: {data}")
     
     return get_thread_object_from_dict(data)

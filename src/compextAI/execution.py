@@ -17,15 +17,7 @@ def get_thread_execution_status(client:APIClient, thread_execution_id:str) -> st
     
     return ThreadExecutionStatus(data["status"])
 
-class ThreadExecutionResponse:
-    role: str
-    content: str
-
-    def __init__(self, role:str, content:str):
-        self.role = role
-        self.content = content
-
-def get_thread_execution_response(client:APIClient, thread_execution_id:str) -> ThreadExecutionResponse:
+def get_thread_execution_response(client:APIClient, thread_execution_id:str) -> dict:
     response = client.get(f"/threadexec/{thread_execution_id}/response")
 
     status_code: int = response["status"]
@@ -34,4 +26,4 @@ def get_thread_execution_response(client:APIClient, thread_execution_id:str) -> 
     if status_code != 200:
         raise Exception(f"Failed to get thread execution response, status code: {status_code}, response: {data}")
     
-    return ThreadExecutionResponse(data["role"], data["content"])
+    return data

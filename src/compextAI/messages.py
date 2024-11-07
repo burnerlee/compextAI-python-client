@@ -7,7 +7,7 @@ class Message:
     role: str
     metadata: dict
 
-    def __init__(self, message_id:str, thread_id:str, content:str, role:str, metadata:dict):
+    def __init__(self,content:str, role:str, message_id:str='', thread_id:str='', metadata:dict={}):
         self.message_id = message_id
         self.thread_id = thread_id
         self.content = content
@@ -16,9 +16,18 @@ class Message:
 
     def __str__(self):
         return f"Message(message_id={self.message_id}, thread_id={self.thread_id}, content={self.content}, role={self.role}, metadata={self.metadata})"
+    
+    def to_dict(self) -> dict:
+        return {
+            "content": self.content,
+            "role": self.role,
+            "metadata": self.metadata,
+            "message_id": self.message_id,
+            "thread_id": self.thread_id
+        }
 
 def get_message_object_from_dict(data:dict) -> Message:
-    return Message(data["identifier"], data["thread_id"], data["content"], data["role"], data["metadata"])
+    return Message(data["content"], data["role"], data["identifier"], data["thread_id"], data["metadata"])
 
 def list(client:APIClient, thread_id:str) -> list[Message]:
     response = client.get(f"/message/thread/{thread_id}")

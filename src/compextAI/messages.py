@@ -36,7 +36,7 @@ class Message:
 def get_message_object_from_dict(data:dict) -> Message:
     return Message(data["content"], data["role"], data["identifier"], data["thread_id"], data["metadata"], data["created_at"], data["updated_at"])
 
-def list(client:APIClient, thread_id:str) -> list[Message]:
+def list_all(client:APIClient, thread_id:str) -> list[Message]:
     response = client.get(f"/message/thread/{thread_id}")
 
     status_code: int = response["status"]
@@ -58,8 +58,8 @@ def retrieve(client:APIClient, message_id:str) -> Message:
     
     return get_message_object_from_dict(data)
 
-def create(client:APIClient, thread_id:str, content:str, role:str, metadata:dict={}) -> Message:
-    response = client.post(f"/message/thread/{thread_id}", data={"content": content, "role": role, "metadata": metadata})
+def create(client:APIClient, thread_id:str, messages:list[Message]) -> list[Message]:
+    response = client.post(f"/message/thread/{thread_id}", data={"messages": [message.to_dict() for message in messages]})
 
     status_code: int = response["status"]
     data: dict = response["data"]
@@ -67,7 +67,7 @@ def create(client:APIClient, thread_id:str, content:str, role:str, metadata:dict
     if status_code != 200:
         raise Exception(f"Failed to create message, status code: {status_code}, response: {data}")
     
-    return get_message_object_from_dict(data)
+    return [get_message_object_from_dict(message) for message in data]
 
 def update(client:APIClient, message_id:str, content:str, role:str, metadata:dict={}) -> Message:
     response = client.put(f"/message/{message_id}", data={"content": content, "role": role, "metadata": metadata})

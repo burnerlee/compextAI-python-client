@@ -1,4 +1,5 @@
 from compextAI.api.api import APIClient
+from datetime import datetime
 
 class Message:
     message_id: str
@@ -6,13 +7,17 @@ class Message:
     content: str
     role: str
     metadata: dict
+    created_at: datetime
+    updated_at: datetime
 
-    def __init__(self,content:str, role:str, message_id:str='', thread_id:str='', metadata:dict={}):
+    def __init__(self,content:str, role:str, message_id:str='', thread_id:str='', metadata:dict={}, created_at:datetime=None, updated_at:datetime=None):
         self.message_id = message_id
         self.thread_id = thread_id
         self.content = content
         self.role = role
         self.metadata = metadata
+        self.created_at = created_at
+        self.updated_at = updated_at
 
     def __str__(self):
         return f"Message(message_id={self.message_id}, thread_id={self.thread_id}, content={self.content}, role={self.role}, metadata={self.metadata})"
@@ -23,11 +28,13 @@ class Message:
             "role": self.role,
             "metadata": self.metadata,
             "message_id": self.message_id,
-            "thread_id": self.thread_id
+            "thread_id": self.thread_id,
+            "created_at": self.created_at,
+            "updated_at": self.updated_at
         }
 
 def get_message_object_from_dict(data:dict) -> Message:
-    return Message(data["content"], data["role"], data["identifier"], data["thread_id"], data["metadata"])
+    return Message(data["content"], data["role"], data["identifier"], data["thread_id"], data["metadata"], data["created_at"], data["updated_at"])
 
 def list(client:APIClient, thread_id:str) -> list[Message]:
     response = client.get(f"/message/thread/{thread_id}")

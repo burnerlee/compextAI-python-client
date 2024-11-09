@@ -34,8 +34,8 @@ class ThreadExecutionParam:
 def get_thread_execution_param_object_from_dict(data:dict) -> ThreadExecutionParam:
     return ThreadExecutionParam(data["identifier"], data["name"], data["environment"], data["model"], data["temperature"], data["timeout"], data["max_tokens"], data["max_completion_tokens"], data["top_p"], data["max_output_tokens"], data["response_format"], data["system_prompt"])
 
-def list(client:APIClient) -> list[ThreadExecutionParam]:
-    response = client.get("/execparams/fetchall")
+def list(client:APIClient, project_name:str) -> list[ThreadExecutionParam]:
+    response = client.get(f"/execparams/fetchall/{project_name}")
 
     status_code: int = response["status"]
     data: dict = response["data"]
@@ -45,8 +45,8 @@ def list(client:APIClient) -> list[ThreadExecutionParam]:
     
     return [get_thread_execution_param_object_from_dict(param) for param in data]
 
-def retrieve(client:APIClient, name:str, environment:str) -> ThreadExecutionParam:
-    response = client.post(f"/execparams/fetch", data={"name": name, "environment": environment})
+def retrieve(client:APIClient, name:str, environment:str, project_name:str) -> ThreadExecutionParam:
+    response = client.post(f"/execparams/fetch", data={"name": name, "environment": environment, "project_name": project_name})
 
     status_code: int = response["status"]
     data: dict = response["data"]
@@ -57,8 +57,8 @@ def retrieve(client:APIClient, name:str, environment:str) -> ThreadExecutionPara
     return get_thread_execution_param_object_from_dict(data)
 
 
-def create(client:APIClient, name:str, environment:str, model:str, temperature:float=0.5, timeout:int=600, max_tokens:int=None, max_completion_tokens:int=None, top_p:float=None, max_output_tokens:int=None, response_format:any=None, system_prompt:str=None) -> ThreadExecutionParam:
-    response = client.post(f"/execparams/create", data={"name": name, "environment": environment, "model": model, "temperature": temperature, "timeout": timeout, "max_tokens": max_tokens, "max_completion_tokens": max_completion_tokens, "top_p": top_p, "max_output_tokens": max_output_tokens, "response_format": response_format, "system_prompt": system_prompt})
+def create(client:APIClient, name:str, environment:str, project_name:str, template_id:str) -> ThreadExecutionParam:
+    response = client.post(f"/execparams/create", data={"name": name, "environment": environment, "project_name": project_name, "template_id": template_id})
 
     status_code: int = response["status"]
     data: dict = response["data"]
@@ -79,7 +79,7 @@ def update(client:APIClient, name:str, environment:str, model:str, temperature:f
     
     return get_thread_execution_param_object_from_dict(data)
 
-def delete(client:APIClient, name:str, environment:str) -> bool:
-    response = client.post(f"/execparams/delete", data={"name": name, "environment": environment})
+def delete(client:APIClient, name:str, environment:str, project_name:str) -> bool:
+    response = client.post(f"/execparams/delete", data={"name": name, "environment": environment, "project_name": project_name})
 
     return response["status"] == 204

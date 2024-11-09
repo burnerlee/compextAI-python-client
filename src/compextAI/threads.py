@@ -40,8 +40,8 @@ class Thread:
 def get_thread_object_from_dict(data:dict) -> Thread:
     return Thread(data["identifier"], data["title"], data["metadata"])
 
-def list(client:APIClient) -> list[Thread]:
-    response = client.get("/thread")
+def list(client:APIClient, project_name:str) -> list[Thread]:
+    response = client.get(f"/thread/all/{project_name}")
     
     status_code: int = response["status"]
     data: dict = response["data"]
@@ -64,8 +64,8 @@ def retrieve(client:APIClient, thread_id:str) -> Thread:
     
     return get_thread_object_from_dict(data)
 
-def create(client:APIClient, title:str=None, metadata:dict={}) -> Thread:
-    response = client.post(f"/thread", data={"title": title, "metadata": metadata})
+def create(client:APIClient,project_name:str, title:str=None, metadata:dict={}) -> Thread:
+    response = client.post(f"/thread", data={"project_name": project_name, "title": title, "metadata": metadata})
 
     status_code: int = response["status"]
     data: dict = response["data"]

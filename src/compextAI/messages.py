@@ -4,13 +4,13 @@ from datetime import datetime
 class Message:
     message_id: str
     thread_id: str
-    content: str
+    content: any
     role: str
     metadata: dict
     created_at: datetime
     updated_at: datetime
 
-    def __init__(self,content:str, role:str, message_id:str='', thread_id:str='', metadata:dict={}, created_at:datetime=None, updated_at:datetime=None):
+    def __init__(self,content:any, role:str, message_id:str='', thread_id:str='', metadata:dict={}, created_at:datetime=None, updated_at:datetime=None):
         self.message_id = message_id
         self.thread_id = thread_id
         self.content = content
@@ -69,7 +69,7 @@ def create(client:APIClient, thread_id:str, messages:list[Message]) -> list[Mess
     
     return [get_message_object_from_dict(message) for message in data]
 
-def update(client:APIClient, message_id:str, content:str, role:str, metadata:dict={}) -> Message:
+def update(client:APIClient, message_id:str, content:any, role:str, metadata:dict={}) -> Message:
     response = client.put(f"/message/{message_id}", data={"content": content, "role": role, "metadata": metadata})
 
     status_code: int = response["status"]

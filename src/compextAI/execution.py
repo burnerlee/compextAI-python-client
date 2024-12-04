@@ -37,13 +37,14 @@ class ExecuteMessagesResponse:
     def __init__(self, thread_execution_id:str):
         self.thread_execution_id = thread_execution_id
 
-def execute_messages(client:APIClient, thread_execution_param_id:str, messages:list[Message],system_prompt:str="", append_assistant_response:bool=True) -> ThreadExecutionResponse:
+def execute_messages(client:APIClient, thread_execution_param_id:str, messages:list[Message],system_prompt:str="", append_assistant_response:bool=True, metadata:dict={}) -> ThreadExecutionResponse:
     thread_id = "compext_thread_null"
     response = client.post(f"/thread/{thread_id}/execute", data={
             "thread_execution_param_id": thread_execution_param_id,
             "append_assistant_response": append_assistant_response,
             "thread_execution_system_prompt": system_prompt,
-            "messages": [message.to_dict() for message in messages]
+            "messages": [message.to_dict() for message in messages],
+            "metadata": metadata
         })
 
     status_code: int = response["status"]

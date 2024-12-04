@@ -68,8 +68,8 @@ def create(client:APIClient, name:str, environment:str, project_name:str, templa
     
     return get_thread_execution_param_object_from_dict(data)
 
-def update(client:APIClient, name:str, environment:str, model:str, temperature:float, timeout:int, max_tokens:int, max_completion_tokens:int, top_p:float, max_output_tokens:int, response_format:any, system_prompt:str) -> ThreadExecutionParam:
-    response = client.post(f"/execparams/update", data={"name": name, "environment": environment, "model": model, "temperature": temperature, "timeout": timeout, "max_tokens": max_tokens, "max_completion_tokens": max_completion_tokens, "top_p": top_p, "max_output_tokens": max_output_tokens, "response_format": response_format, "system_prompt": system_prompt})
+def update(client:APIClient, name:str, environment:str, templateID:str) -> ThreadExecutionParam:
+    response = client.post(f"/execparams/update", data={"name": name, "environment": environment, "template_id": templateID})
 
     status_code: int = response["status"]
     data: dict = response["data"]

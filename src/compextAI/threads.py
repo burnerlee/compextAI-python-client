@@ -21,11 +21,12 @@ class Thread:
     def __str__(self):
         return f"Thread(thread_id={self.thread_id}, title={self.title}, metadata={self.metadata})"
     
-    def execute(self, client:APIClient, thread_exec_param_id: str, system_prompt:str="", append_assistant_response:bool=True) -> ThreadExecutionResponse:
+    def execute(self, client:APIClient, thread_exec_param_id: str, system_prompt:str="", append_assistant_response:bool=True, metadata:dict={}) -> ThreadExecutionResponse:
         response = client.post(f"/thread/{self.thread_id}/execute", data={
             "thread_execution_param_id": thread_exec_param_id,
             "append_assistant_response": append_assistant_response,
-            "thread_execution_system_prompt": system_prompt
+            "thread_execution_system_prompt": system_prompt,
+            "metadata": metadata
         })
 
         status_code: int = response["status"]

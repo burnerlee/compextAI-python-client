@@ -4,6 +4,7 @@ from compextAI.threads import ThreadExecutionResponse
 from compextAI.tools import get_tool
 import time
 import queue
+import json
 
 class ThreadExecutionStatus:
     status: str
@@ -69,6 +70,10 @@ class ExecuteMessagesResponse:
             client=client,
             thread_execution_id=self.thread_execution_id
         )
+    
+    def get_stop_reason(self, client:APIClient) -> str:
+        response = self.poll_thread_execution(client)
+        return response['response']['choices'][0]['finish_reason']
 
 class Tool:
     name: str
@@ -122,67 +127,74 @@ class ExecuteMessagesWithToolsResponse(ExecuteMessagesResponse):
     def poll_until_completion(self, client:APIClient, execution_queue:queue.Queue=None) -> any:
         while True:
             response = self.poll_thread_execution(client)
-            if response['response']['stop_reason'] == "tool_use":
-                for msg in response['response']['content']:
-                    if msg['type'] == "tool_use":
-                        tool_name = msg['name']
-                        tool_input = msg['input']
-                        tool_use_id = msg['id']
-                        if execution_queue:
-                            execution_queue.put({
-                                "type": "tool_use",
-                                "content": {
-                                    "tool_name": tool_name,
-                                    "tool_input": tool_input,
-                                    "tool_use_id": tool_use_id
-                                }
-                            })
-                        print("tool return", msg)
+            if self.get_stop_reason(client) == "tool_calls":
+                content_msg = response['response']['choices'][0]['message']['content']
+                tool_calls = response['response']['choices'][0]['message']['tool_calls']
+                self.messages.append(Message(
+                    **response['response']['choices'][0]['message'],
+                ))
+                for tool_call in tool_calls:
+                    tool_name = tool_call['function']['name']
+                    tool_input = tool_call['function']['arguments']
+                    tool_use_id = tool_call['id']
 
-                        try:
-                            if tool_name == "human_in_the_loop":
-                                tool_result = self.human_intervention_handler(**tool_input)
-                            else:
-                                tool_result = get_tool(tool_name)(**tool_input)
-                        except Exception as e:
-                            print(f"Error executing tool {tool_name}: {e}")
-                            raise Exception(f"Error executing tool {tool_name}: {e}")
-            
-                        # handle tool result
-                        print(f"Tool {tool_name} returned: {tool_result}")
-                        if execution_queue:
-                            execution_queue.put({
-                                "type": "tool_result",
-                                "content": {
-                                    "tool_use_id": tool_use_id,
-                                    "result": tool_result
-                                }
-                            })
+                    if tool_name == "json_tool_call":
                         self.messages.append(Message(
-                            role="assistant",
-                            content=response['response']['content'],
-                        ))
-                        self.messages.append(Message(
-                            role="user" ,
-                            content=[
-                                {
-                                    "type": "tool_result",
-                                    "tool_use_id": tool_use_id,
-                                    "content": tool_result
-                                }
-                            ]
-                        ))
-                        # start a new execution with the new messages
-                        new_execution = execute_messages_with_tools(
-                            client=client,
-                            thread_execution_param_id=self.thread_execution_param_id,
-                            messages=self.messages,
-                            system_prompt=self.system_prompt,
-                            append_assistant_response=self.append_assistant_response,
-                            metadata=self.metadata,
-                            tool_list=self.tools
-                        )
-                        self.thread_execution_id = new_execution.thread_execution_id
+                            role="tool" ,
+                            content=tool_call['function']['arguments'],
+                            tool_call_id=tool_use_id
+                        ))  
+                        continue
+                        
+                    if execution_queue:
+                        execution_queue.put({
+                            "type": "tool_use",
+                            "content": {
+                                "tool_name": tool_name,
+                                "tool_input": tool_input,
+                                "tool_use_id": tool_use_id
+                            }
+                        })
+                    tool_input_dict = json.loads(tool_input)
+                    print("tool return", tool_call)
+                    print("tool input", tool_input_dict)
+                    print("tool input type", type(tool_input_dict))
+                    try:
+                        if tool_name == "human_in_the_loop":
+                            tool_result = self.human_intervention_handler(**tool_input_dict)
+                        else:
+                            tool_result = get_tool(tool_name)(**tool_input_dict)
+                    except Exception as e:
+                        print(f"Error executing tool {tool_name}: {e}")
+                        raise Exception(f"Error executing tool {tool_name}: {e}")
+        
+                    # handle tool result
+                    print(f"Tool {tool_name} returned: {tool_result}")
+                    if execution_queue:
+                        execution_queue.put({
+                            "type": "tool_result",
+                            "content": {
+                                "tool_use_id": tool_use_id,
+                                "result": tool_result
+                            }
+                        })
+                    print("response assistant appending", response['response']['choices'][0]['message'])
+                    self.messages.append(Message(
+                        role="tool" ,
+                        content=tool_result,
+                        tool_call_id=tool_use_id
+                    ))
+                # start a new execution with the new messages
+                new_execution = execute_messages_with_tools(
+                    client=client,
+                    thread_execution_param_id=self.thread_execution_param_id,
+                    messages=self.messages,
+                    system_prompt=self.system_prompt,
+                    append_assistant_response=self.append_assistant_response,
+                    metadata=self.metadata,
+                    tool_list=self.tools
+                )
+                self.thread_execution_id = new_execution.thread_execution_id
             else:
                 break
 

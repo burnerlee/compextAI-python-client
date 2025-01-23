@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "CompextAI"
-version = "0.0.27"
+version = "0.0.28"
 authors = [
   { name="burnerlee", email="avi.aviral140@gmail.com" },
 ]

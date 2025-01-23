@@ -169,19 +169,19 @@ class ExecuteMessagesWithToolsResponse(ExecuteMessagesResponse):
                         raise Exception(f"Error executing tool {tool_name}: {e}")
         
                     # handle tool result
-                    print(f"Tool {tool_name} returned: {tool_result}")
+                    print(f"Tool {tool_name} returned: {tool_result.get_content()}")
                     if execution_queue:
                         execution_queue.put({
                             "type": "tool_result",
                             "content": {
                                 "tool_use_id": tool_use_id,
-                                "result": tool_result
+                                "result": tool_result.get_content()
                             }
                         })
                     print("response assistant appending", response['response']['choices'][0]['message'])
                     self.messages.append(Message(
                         role="tool" ,
-                        content=tool_result,
+                        content=tool_result.get_result(),
                         tool_call_id=tool_use_id
                     ))
                 # start a new execution with the new messages

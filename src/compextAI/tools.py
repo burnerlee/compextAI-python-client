@@ -9,6 +9,20 @@ def get_input_schema_dict(input_schema:Type[BaseModel]) -> dict:
     input_schema_dict = input_schema.model_json_schema()
     return input_schema_dict
 
+class ToolResult:
+    result: str
+    content: str
+
+    def __init__(self, result:str, content:str):
+        self.result = result
+        self.content = content
+
+    def get_result(self):
+        return self.result
+
+    def get_content(self):
+        return self.content
+
 class Tool:
     name:str
     description:str
@@ -19,7 +33,7 @@ class Tool:
         self.description = description
         self.input_schema = input_schema
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args, **kwargs) -> ToolResult:
         return self.func(self.tool_class(), *args, **kwargs)
     
     def to_dict(self):
